@@ -10,3 +10,4 @@ requests>=2.32
 feedparser>=6.0
 python-docx>=1.1
 pytest>=8.3
+reportlab>=4.2  # só para gerar PDF sintético em teste, não é usado em produção
