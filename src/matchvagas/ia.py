@@ -15,6 +15,7 @@ ROTEAMENTO = {
     "extracao_pdf": [("gemini", "gemini-flash-latest"), ("groq", "llama-3.3-70b-versatile")],
     "entrevista_perguntas": [("gemini", "gemini-flash-latest"), ("groq", "llama-3.3-70b-versatile")],
     "classificacao_gap": [("groq", "llama-3.3-70b-versatile"), ("gemini", "gemini-flash-latest")],
+    "avaliacao_vaga": [("gemini", "gemini-flash-latest"), ("groq", "llama-3.3-70b-versatile")],
     "cv_geracao": [("gemini", "gemini-pro-latest"), ("groq", "llama-3.3-70b-versatile")],
 }
 

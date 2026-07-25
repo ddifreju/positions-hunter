@@ -6,11 +6,9 @@ esteja no texto de entrada. Cada evidência extraída é uma frase que
 precisa existir, em substância, no documento de origem.
 """
 
-import json
-import re
-
 from matchvagas.db import get_client
 from matchvagas.ia import gerar
+from matchvagas.parsing import parse_json_array
 
 PROMPT_EXTRACAO = """\
 Você extrai evidências de um currículo/perfil profissional para um banco \
@@ -34,14 +32,6 @@ Texto de origem:
 {texto}
 ---
 """
-
-
-def parse_json_array(resposta: str) -> list:
-    limpo = re.sub(r"^```(json)?|```$", "", resposta.strip(), flags=re.MULTILINE).strip()
-    dados = json.loads(limpo)
-    if not isinstance(dados, list):
-        raise ValueError("resposta do modelo não é uma lista JSON")
-    return dados
 
 
 def gerar_evidencias_do_documento(usuaria_id: str, documento_id: str, texto: str) -> list[dict]:

@@ -74,5 +74,9 @@ create table perguntas (
   texto text not null,
   resposta text,
   respondida_em timestamptz,
-  gerou_evidencia_id uuid references evidencias(id)
+  gerou_evidencia_id uuid references evidencias(id),
+  -- adicionada na Fase 3 (ver sql/migrations/0001_perguntas_gap_id.sql):
+  -- liga a pergunta ao gap tipo "documentacao" que ela tenta resolver,
+  -- necessario para fechar o gap certo quando a resposta chega.
+  gap_id uuid references gaps(id)
 );
