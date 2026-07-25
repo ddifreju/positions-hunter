@@ -100,11 +100,15 @@ def camada2_ia(usuaria_id: str, finalistas: list[dict]) -> list[dict]:
 
     for item in finalistas:
         vaga = item["vaga"]
+        # descrição truncada em 2000 (não 4000) chars: contexto de
+        # sobra pra avaliar fit, e cada token a menos importa — o free
+        # tier dos provedores tem teto diário de tokens/requisições, e
+        # essa tarefa roda uma vez por vaga finalista.
         prompt = PROMPT_AVALIACAO_VAGA.format(
             perfil=perfil,
             titulo=vaga.get("titulo") or "",
             empresa=vaga.get("empresa") or "",
-            descricao=(vaga.get("descricao") or "")[:4000],
+            descricao=(vaga.get("descricao") or "")[:2000],
         )
         avaliacao = parse_json(gerar(prompt, tarefa="avaliacao_vaga"))
 
