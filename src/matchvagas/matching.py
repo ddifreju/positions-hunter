@@ -8,7 +8,7 @@ e aponta habilidades que a vaga pede e o banco de evidências não cobre
 desnecessário (Seção 6.2) — a demanda mesmo é só nas finalistas.
 """
 
-from sklearn.feature_extraction.text import TfidfVectorizer
+from sklearn.feature_extraction.text import ENGLISH_STOP_WORDS, TfidfVectorizer
 from sklearn.metrics.pairwise import cosine_similarity
 
 from matchvagas.db import get_client
@@ -16,6 +16,23 @@ from matchvagas.evidencias import resumo_evidencias
 from matchvagas.gaps import processar_habilidades_faltantes
 from matchvagas.ia import gerar
 from matchvagas.parsing import parse_json
+
+# O corpus de vagas é multilíngue (PT/ES/EN). Sem isso, palavras
+# comuns de português/espanhol dominam a similaridade e uma vaga de
+# vendas em português fica "parecida" com o perfil só por compartilhar
+# "experiência", "trabalho", "equipe" — nada a ver com a skill em si.
+_STOPWORDS_PT_ES = {
+    "de", "da", "do", "das", "dos", "em", "para", "com", "que", "não", "uma", "um",
+    "uns", "umas", "os", "as", "ao", "aos", "à", "às", "é", "são", "foi", "ser",
+    "ter", "tem", "seu", "sua", "seus", "suas", "mais", "muito", "também", "como",
+    "quando", "onde", "qual", "quais", "este", "esta", "isso", "isto", "essa",
+    "esse", "pelo", "pela", "por", "sem", "sobre", "entre", "até", "após", "antes",
+    "depois", "então", "mas", "ou", "se", "na", "no", "nas", "nos", "e", "a", "o",
+    "la", "el", "los", "las", "en", "con", "sin", "hasta", "después", "pero", "si",
+    "un", "una", "unos", "unas", "son", "fue", "tener", "tiene", "su", "sus",
+    "más", "muy", "también", "cuando", "donde", "cual", "cuales", "eso",
+}
+STOP_WORDS_MULTILINGUE = list(ENGLISH_STOP_WORDS | _STOPWORDS_PT_ES)
 
 PROMPT_AVALIACAO_VAGA = """\
 Você avalia a compatibilidade entre o perfil de uma candidata e uma vaga.
@@ -47,16 +64,28 @@ def _texto_vaga(vaga: dict) -> str:
     return f"{vaga.get('titulo') or ''} {vaga.get('descricao') or ''}"
 
 
+def _texto_perfil_tfidf(usuaria_id: str) -> str:
+    """Texto do perfil pro TF-IDF: repete as tags de habilidade pra dar
+    peso extra a elas. Nome de tecnologia/ferramenta tende a aparecer
+    igual em vaga de qualquer idioma — é um sinal muito mais confiável
+    que o texto corrido em português das evidências."""
+    client = get_client(admin=True)
+    linhas = client.table("evidencias").select("texto,tags").eq("usuaria_id", usuaria_id).execute().data
+    textos = " ".join(linha["texto"] for linha in linhas)
+    tags = [tag for linha in linhas for tag in linha["tags"]]
+    return f"{textos} {' '.join(tags * 4)}"
+
+
 def camada1_tfidf(usuaria_id: str, top_n: int = 15) -> list[dict]:
     client = get_client(admin=True)
     vagas = client.table("vagas").select("*").execute().data
     if not vagas:
         return []
 
-    perfil = resumo_evidencias(usuaria_id)
+    perfil = _texto_perfil_tfidf(usuaria_id)
     corpus = [_texto_vaga(v) for v in vagas]
 
-    vetor = TfidfVectorizer(max_features=5000)
+    vetor = TfidfVectorizer(max_features=5000, stop_words=STOP_WORDS_MULTILINGUE)
     matriz = vetor.fit_transform(corpus + [perfil])
     similaridades = cosine_similarity(matriz[-1], matriz[:-1])[0]
 

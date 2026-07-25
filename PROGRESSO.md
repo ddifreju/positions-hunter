@@ -72,5 +72,26 @@ Na resposta sobre decisão de arquitetura, você mencionou "**canunda**" (prová
 ### Critério de pronto — verificado
 25 evidências ≥ 15 exigidas, todas rastreáveis à origem (documento ou resposta de entrevista), nenhuma inventada (exceto o ponto acima, que está sinalizado e não vai para CV sem confirmação).
 
+## Fase 3 — Matching (mecânica pronta, bloqueada por cota de IA)
+
+### Feito
+- `src/matchvagas/matching.py` — camada 1 (TF-IDF local, `scikit-learn`) corta as ~630 vagas coletadas na Fase 1 para as finalistas; camada 2 (`gerar(tarefa="avaliacao_vaga")`) pontua cada finalista, gera justificativa e aponta habilidades ausentes.
+- `src/matchvagas/gaps.py` — classificação (`documentacao`/`competencia`, conservador na dúvida per Seção 7.4) e registro de gap com incremento de `frequencia` em vez de duplicar linha.
+- Entrevista 2 em `src/matchvagas/entrevista.py`: uma pergunta simples por gap tipo `documentacao` aberto, nunca repete pergunta já feita; ao responder, fecha o gap e marca a evidência com `fonte="gap_resolvido"`.
+- Migração `sql/migrations/0001_perguntas_gap_id.sql` (coluna `perguntas.gap_id`) aplicada por você no Supabase.
+- `src/matchvagas/parsing.py` — parsing de JSON extraído do parsing duplicado em `evidencias.py`/`entrevista.py`.
+- `tests/test_matching.py`, `tests/test_gaps.py` — smoke tests com dado sintético.
+
+### O que quebrou e como foi resolvido
+- **Bug real na camada 1**: rodando com seu dado de verdade, o TF-IDF trouxe como finalistas vagas de vendas, marketing, atendimento e ensino — nada a ver com seu perfil de dev. Causa: o corpus de vagas é multilíngue (PT/ES/EN) e, sem remoção de stopword, palavras comuns de português/espanhol ("experiência", "trabalho", "equipe") dominavam a similaridade mais que termos técnicos. Corrigido em duas frentes: (1) lista de stopwords PT/ES somada à lista padrão em inglês do scikit-learn; (2) o texto do perfil usado no TF-IDF agora repete as tags de habilidade (`java`, `react`, `llm` etc.) várias vezes — nome de tecnologia tende a aparecer igual em qualquer idioma, então isso pesa mais que o texto corrido. Resultado: o novo top 20 ficou dominado por vagas de Full Stack/React/Java/DevOps/AI Engineer, coerente com seu perfil.
+- **Cota diária de IA esgotada nos dois provedores** — Gemini free tier é só 20 requisições/dia por projeto+modelo (bem mais restritivo do que eu esperava), e o Groq tem limite de tokens/dia que também bateu, só de tanto teste rodado hoje nas Fases 2 e 3 (extração, duas entrevistas, três rodadas de matching). Isso interrompeu a segunda rodada de matching no meio (`camada2_ia` falhou ao classificar um gap). Limpei as `candidaturas`/`gaps` parciais/misturados no Supabase pra não deixar dado inconsistente, e reordenei o roteamento de `avaliacao_vaga` pra tentar Groq primeiro (limite bem mais folgado) — Gemini fica como fallback de qualidade.
+
+### Achado que vale registrar para o produto
+20 requisições/dia no Gemini é pouco: uma única rodada de matching para uma usuária já usa até 15 chamadas de `avaliacao_vaga` sozinha. Com Groq como primário nas tarefas de alto volume isso deve resolver, mas se o Groq também apertar no dia a dia (2 usuárias rodando cron diário), a próxima opção é somar um terceiro provedor gratuito da Seção 6.3 (OpenRouter, Cerebras ou Mistral) como segundo fallback. Não fiz isso agora — sem sinal de que vai ser necessário ainda.
+
+### Pendente
+- Rodar `rodar_matching()` de novo do zero (banco já limpo) assim que a cota de algum provedor liberar, e então revisar as 10 vagas melhor pontuadas como `validador` — só aí a Fase 3 fecha de fato.
+- Depois disso, testar a Entrevista 2 de ponta a ponta com um gap `documentacao` real (a mecânica já foi validada com dado sintético em `test_gaps.py`, mas não com uma pergunta real gerada a partir de um gap de verdade).
+
 ## Próximo passo
-Aguardar sua confirmação sobre "Camunda" e ok para começar a Fase 3 (matching TF-IDF + IA, detecção de gaps, Entrevista 2).
+Aguardar a cota de IA liberar (Groq falou em ~5min quando esgotou; Gemini é limite diário, só libera amanhã) pra rodar o matching completo com dado real e fechar a Fase 3.

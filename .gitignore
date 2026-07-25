@@ -33,6 +33,7 @@ Thumbs.db
 
 # Config local do Claude Code (por máquina, não compartilhar)
 .claude/settings.local.json
+.claude/scheduled_tasks.lock
 
 # Ollama models (baixados localmente, não versionar)
 *.gguf

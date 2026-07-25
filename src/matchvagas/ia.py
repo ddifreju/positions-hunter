@@ -11,11 +11,19 @@ import os
 # apontam sempre para a versão atual — evita quebrar quando um nome de
 # modelo fixo é descontinuado (Seção 6.3: valide sempre na documentação
 # oficial, não confie em memória de treino).
+#
+# Descoberta rodando a Fase 3 com dado real: o free tier do Gemini tem
+# limite de só 20 requisições/dia por projeto+modelo — baixo demais pra
+# tarefa que roda uma vez por vaga finalista (avaliacao_vaga chega a 15
+# chamadas numa rodada só, pra uma usuária). O Groq tem limite de
+# tokens/dia bem mais folgado. Por isso tarefas de alto volume tentam
+# Groq primeiro; tarefas de baixo volume (uma ou duas vezes por fase)
+# continuam com Gemini primeiro pela qualidade.
 ROTEAMENTO = {
     "extracao_pdf": [("gemini", "gemini-flash-latest"), ("groq", "llama-3.3-70b-versatile")],
     "entrevista_perguntas": [("gemini", "gemini-flash-latest"), ("groq", "llama-3.3-70b-versatile")],
     "classificacao_gap": [("groq", "llama-3.3-70b-versatile"), ("gemini", "gemini-flash-latest")],
-    "avaliacao_vaga": [("gemini", "gemini-flash-latest"), ("groq", "llama-3.3-70b-versatile")],
+    "avaliacao_vaga": [("groq", "llama-3.3-70b-versatile"), ("gemini", "gemini-flash-latest")],
     "cv_geracao": [("gemini", "gemini-pro-latest"), ("groq", "llama-3.3-70b-versatile")],
 }
 
