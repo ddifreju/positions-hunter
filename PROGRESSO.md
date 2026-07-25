@@ -1,29 +1,32 @@
 # Progresso — MatchVagas
 
-## Fase 0 — Fundação (em andamento)
+## Fase 0 — Fundação (concluída)
 
 ### Feito
-- Repositório git local iniciado; `.gitignore` criado e commitado antes de qualquer outro arquivo (R4).
+- Repositório git local iniciado e enviado para https://github.com/ddifreju/positions-hunter; `.gitignore` criado e commitado antes de qualquer outro arquivo (R4).
 - Estrutura de pastas: `app/` (entrada Streamlit), `src/matchvagas/` (lógica), `sql/` (schema), `tests/`.
-- `requirements.txt`, `README.md`, `.env.example` (sem valores reais).
+- `requirements.txt`, `README.md`, `.env.example` (sem valores reais), `.env` local preenchido (Supabase, Gemini, Groq) e confirmado fora do controle de versão.
 - `.claude/agents/` com os três agentes: `arquiteto`, `construtor`, `validador`.
-- `CURADORIA.md` — 4 candidatos da Seção 5 avaliados (1 não localizado). Recomendação "adotar agora": `anthropic-skills:docx` para a Fase 4, aguardando aprovação.
-- Função `gerar(prompt, tarefa)` implementada em `src/matchvagas/ia.py`, com roteamento por tarefa e fallback entre Gemini e Groq (Seção 6).
-- `sql/schema.sql` — schema inicial copiado da Seção 7.3, pronto para revisão do `arquiteto` antes de aplicar no Supabase.
-- Testes de critério de pronto escritos: `tests/test_conexao_supabase.py` (lê/escreve no Supabase) e `tests/test_ia.py` (gerar() responde via dois provedores).
+- `CURADORIA.md` — 4 candidatos da Seção 5 avaliados (1 não localizado). `anthropic-skills:docx` aprovada para uso na Fase 4 (autorização ampla dada pela Jessica/Juliana para adoções futuras, mas seguimos registrando cada uma em `CURADORIA.md` e sinalizando qualquer coisa que peça credencial ou acesse domínio desconhecido).
+- Função `gerar(prompt, tarefa)` implementada em `src/matchvagas/ia.py`, com roteamento por tarefa e fallback entre Gemini e Groq (Seção 6). Modelo do Gemini ajustado de `gemini-2.5-flash` (fixo, descontinuado para novas chaves) para o alias `gemini-flash-latest`/`gemini-pro-latest`, que segue a versão atual automaticamente.
+- `sql/schema.sql` — schema inicial da Seção 7.3, revisado pelo `arquiteto` (cópia fiel, sem alterações) e aplicado no Supabase pela Jessica/Juliana via SQL Editor.
+- Ambiente local: venv criado, dependências instaladas (`supabase`, `google-genai`, `groq`, `python-dotenv`, `pytest`).
 
-### Bloqueado — aguardando setup manual (Seção 3.1 do briefing)
-Estes testes **não foram executados ainda** porque dependem de chaves que só a humana pode gerar:
-- `SUPABASE_URL` / `SUPABASE_SERVICE_KEY` — projeto Supabase ainda não criado.
-- `GEMINI_API_KEY` — chave do Google AI Studio ainda não gerada.
-- `GROQ_API_KEY` — não pedida ainda (Groq é o segundo provedor da função `gerar()`; passo a passo será dado quando as outras chaves chegarem).
-- URL do repositório GitHub — ainda não informada, então nenhum push foi feito.
-- Schema ainda não aplicado no Supabase (não existe projeto para aplicar).
+### Critério de pronto — verificado
+`pytest` rodando os 3 testes: conexão Supabase (lê e escreve `usuarias`) e `gerar()` respondendo via Gemini e via Groq. Todos passando.
 
-### Pendente para fechar a Fase 0
-1. Receber URL do repo GitHub, `.env` preenchido (Supabase + Gemini), e então: aplicar `sql/schema.sql` no Supabase, rodar `pytest` e confirmar que os dois testes de critério de pronto passam.
-2. `arquiteto` revisar o schema antes de aplicar.
-3. Reportar fechamento da Fase 0 e pedir ok para começar a Fase 1.
+```
+tests/test_conexao_supabase.py::test_escreve_e_le_usuaria PASSED
+tests/test_ia.py::test_gemini_responde PASSED
+tests/test_ia.py::test_groq_responde PASSED
+```
+
+### O que quebrou e como foi resolvido
+- Nome de modelo do Gemini hardcoded (`gemini-2.5-flash`) retornou 404 "no longer available to new users" — resolvido trocando para os aliases `-latest`, que a Google mantém apontando para o modelo vigente.
+- Aplicar o schema exigiria a senha do Postgres, que não pedi (fica só com ela no gerenciador de senhas) — resolvido pedindo para ela rodar o SQL direto no SQL Editor do painel do Supabase.
+
+### Pendente
+Nada bloqueando. Fase 0 fechada.
 
 ## Próximo passo
-Aguardando as chaves e a URL do repositório (checklist já enviado) para concluir e fechar a Fase 0.
+Aguardar ok para começar a Fase 1 (fontes de vaga: Remotive, RemoteOK, Arbeitnow, Adzuna, Jooble, Himalayas, We Work Remotely).

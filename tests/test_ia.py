@@ -13,8 +13,8 @@ PROMPT = "Responda apenas com a palavra: ok"
 
 
 def test_gemini_responde():
-    assert len(_chamar_gemini(PROMPT).strip()) > 0
+    assert len(_chamar_gemini(PROMPT, "gemini-flash-latest").strip()) > 0
 
 
 def test_groq_responde():
-    assert len(_chamar_groq(PROMPT).strip()) > 0
+    assert len(_chamar_groq(PROMPT, "llama-3.3-70b-versatile").strip()) > 0
