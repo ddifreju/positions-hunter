@@ -1,0 +1,38 @@
+# Segredos - nunca versionar (R4)
+.env
+.env.*
+!.env.example
+*.key
+secrets.toml
+.streamlit/secrets.toml
+
+# Python
+__pycache__/
+*.py[cod]
+*$py.class
+*.egg-info/
+.venv/
+venv/
+env/
+.pytest_cache/
+.mypy_cache/
+.ruff_cache/
+
+# Dados baixados / gerados localmente (nada persiste fora do Supabase)
+*.pdf
+!docs/exemplos/*.pdf
+data/
+tmp/
+*.log
+
+# IDE / SO
+.vscode/
+.idea/
+.DS_Store
+Thumbs.db
+
+# Config local do Claude Code (por máquina, não compartilhar)
+.claude/settings.local.json
+
+# Ollama models (baixados localmente, não versionar)
+*.gguf
