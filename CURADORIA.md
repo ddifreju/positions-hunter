@@ -59,3 +59,37 @@ Item genérico demais para avaliar como um repositório único — não há um n
 | `anthropic-skills:docx` (já instalada) | Zero — nenhuma conta, chave ou instalação | Geração do arquivo `.docx` do CV na Fase 4, a partir do conteúdo que o `construtor` montar do banco de evidências |
 
 Isso respeita o limite de 2 adoções por fase (é a única nesta rodada). Aguardando seu ok para considerar `anthropic-skills:docx` adotada — até lá, ela fica só registrada aqui, sem uso no código.
+
+---
+
+## Terceiro provedor de IA (Seção 6.3) — avaliado na Fase 3, a pedido da Juliana
+
+Motivo: os dois provedores atuais (Gemini, Groq) esgotaram a cota diária no mesmo dia, bloqueando o matching. Avaliei os três candidatos da Seção 6.3 direto na documentação oficial (2026-07-30) — não confio em blog/SEO de terceiros, que estavam desatualizados em pelo menos um caso.
+
+### OpenRouter
+
+- URL: https://openrouter.ai
+- Fonte verificada: https://openrouter.ai/docs/api-reference/limits
+- Free tier: 50 requisições/dia em modelos `:free` (20 rpm), com saldo $0 — **sem exigir cartão** para esse patamar. Sobe para 1.000/dia só se comprar $10 em créditos (não vamos fazer isso).
+- Modelos `:free` incluem Llama 3.3 70B, DeepSeek R1, Gemini Flash, entre outros.
+- Aplicação neste projeto: alta — mais uma camada de fallback gratuita e sem cartão pras tarefas de alto volume (`avaliacao_vaga`, `classificacao_gap`), que são justamente as que estouraram a cota.
+- Recomendação: **adotar agora**
+
+### Cerebras
+
+- URL: https://cerebras.ai
+- Fonte verificada: https://inference-docs.cerebras.ai/support/rate-limits
+- Free tier teria 1M tokens/dia (dado atrativo), mas a documentação oficial diz literalmente: *"New accounts receive $5 in free credits **after adding a verified payment method**"* e *"If you skip adding a payment method at sign-up, Playground and API access remain inactive until you do."* — ou seja, **cartão é obrigatório** pra ativar até o acesso gratuito. Vários blogs de terceiros dizem "sem cartão", mas a doc oficial contradiz isso — fico com a doc oficial.
+- Aplicação neste projeto: seria alta (1M tokens/dia resolveria de vez o problema de cota), mas R1 e a regra de segurança me obrigam a parar aqui.
+- Recomendação: **não adoto sem sua decisão explícita** — só avança se você quiser cadastrar um cartão lá (mesmo sem cobrança prevista).
+
+### Mistral (La Plateforme)
+
+- URL: https://mistral.ai
+- Fonte verificada: páginas de pricing/docs oficiais, que não publicam mais limites exatos do tier gratuito (dizem só "~1B tokens/mês", "checar no Admin Console" e "para avaliação, não produção").
+- Aplicação neste projeto: baixa confiança — não consegui confirmar nem os limites reais nem se exige cartão, e o próprio termo "não é pra produção" é um desincentivo direto pra um cron diário.
+- Recomendação: descartar por ora
+
+### Decisão pendente
+
+Isso é uma segunda adoção nesta rodada (OpenRouter), dentro do limite de 2 por fase. Aguardando seu ok pra integrar o OpenRouter como terceiro provedor no `gerar()`, e sua decisão sobre o Cerebras (cadastrar cartão lá ou não).
